@@ -18,8 +18,14 @@ import java.util.Timer;
 public class ReadyListener extends ListenerAdapter {
 
     private static final String BOT_TOKEN = "MzAzNjcyNzUyMTkwMjU5MjAy.C9bjFA.bCB4rk1m6p5pfwSpE8lOdl6PUto";
-    private static Timer timer = new Timer();
+
     private String topicLink = "";
+    private boolean spamming = false;
+    private boolean tripSpamming = false;
+    private Timer timer;
+    private SpamTimer spamTimer;
+    private SpamTimer tripSpamTimer_Lobby;
+    private Timer tripTimer;
 
     public static void main(String[] args) throws LoginException, RateLimitedException {
         JDA jda = new JDABuilder(AccountType.BOT).setToken(BOT_TOKEN)
@@ -42,16 +48,27 @@ public class ReadyListener extends ListenerAdapter {
         boolean bot = author.isBot();
         TextChannel textChannel = event.getTextChannel();
 
-        TextChannel lobby = jda.getTextChannelById("282386308465164289");
-        SpamTimer spamTimer = new SpamTimer(lobby, topicLink);
+        String tripSpamText = "Change your nickname to your RSN        EXAMPLE - Harmz | Mike , Horror Duck | Kimmy\n\n" +
+                "To change your nickname right click your name - change nickname\n\n" +
+                "If your discord name is not your RSN you will NOT be moved into events channel\n\n" +
+                "Move to the Lobby voice chat and PM Josh to be moved in to the events channel";
 
+        String helpText = "Available commands: " +
+                "\n!site - Link for site" +
+                "\n!discord - Discord invite link" +
+                "\n!calc <equation> - make calculations" +
+                "\n!topic - display the current topic";
+
+        TextChannel lobby = jda.getTextChannelById("282386308465164289");
+
+        //Available to anyone
         if (event.isFromType(ChannelType.TEXT) && !author.isBot()) { //If this message was sent to a Guild TextChannel
 
             if (msg.equals("!site")) {
                 channel.sendMessage("http://www.ir-rs.com/").queue();
             }
 
-            if (msg.equals("!invite")) {
+            if (msg.equals("!discord")) {
                 channel.sendMessage("https://discord.gg/3CdzhGr").queue();
             }
 
@@ -73,16 +90,41 @@ public class ReadyListener extends ListenerAdapter {
             }
 
             if (msg.equals("!help")) {
-                channel.sendMessage("Available commands: " +
-                        "\n!site - Link for site" +
-                        "\n!invite - Discord invite link" +
-                        "\n!calc <equation> - make calculations" +
-                        "\n!topic - display the current topic").queue();
+                channel.sendMessage(helpText).queue();
             }
         }
 
+        //Scouting / Internal +
+        if(event.isFromType(ChannelType.TEXT) && event.isFromType(ChannelType.TEXT) && event.getTextChannel().getName().equals("admin")
+                || event.isFromType(ChannelType.TEXT) && event.getTextChannel().getName().equals("internal")
+                || event.isFromType(ChannelType.TEXT) && event.getTextChannel().getName().equals("intel")
+                || event.isFromType(ChannelType.TEXT) && event.getTextChannel().getName().equals("scouting")
+                || event.isFromType(ChannelType.TEXT) && event.getTextChannel().getName().equals("tempadmin")
+                && !author.isBot()) {
+            if (msg.equals("!tripSpam")) {
+
+                if (!tripSpamming) {
+                    tripSpamTimer_Lobby = new SpamTimer(lobby, tripSpamText);
+                    tripTimer = new Timer();
+                    tripSpamming = true;
+                    channel.sendMessage("Trip spam started").queue();
+                    tripTimer.schedule(tripSpamTimer_Lobby, 0, 1000 * 60 * 5);
+                } else {
+                    tripSpamming = false;
+                    tripTimer.cancel();
+                    channel.sendMessage("Trip spam stopped").queue();
+                }
+            }
+
+            if (msg.equals("!help")) {
+                channel.sendMessage(
+                        "\n!tripSpam - starts / stops the trip spam to add username to discord name").queue();
+            }
+        }
+
+        //Council +
         if (event.isFromType(ChannelType.TEXT) && event.isFromType(ChannelType.TEXT) && event.getTextChannel().getName().equals("admin")
-                || event.isFromType(ChannelType.TEXT) && event.getTextChannel().getName().equals("council")
+                || event.isFromType(ChannelType.TEXT) && event.getTextChannel().getName().equals("internal")
                 || event.isFromType(ChannelType.TEXT) && event.getTextChannel().getName().equals("tempadmin")
                 && !author.isBot()) {
             if (msg.equals("!spreadsheet")) {
@@ -90,18 +132,31 @@ public class ReadyListener extends ListenerAdapter {
             }
 
             if (msg.equals("!startSpam")) {
-                if (topicLink.equals("")) {
-                    channel.sendMessage("There is no topic currently set").queue();
+
+                if (!spamming) {
+                    if (topicLink.equals("")) {
+                        channel.sendMessage("There is no topic currently set. Set it using the !setTopic command").queue();
+                    } else {
+                        spamTimer = new SpamTimer(lobby, topicLink);
+                        timer = new Timer();
+                        spamming = true;
+                        channel.sendMessage("Spam started").queue();
+                        // schedule the task to run starting now and then every hour...
+                        timer.schedule(spamTimer, 0, 1000 * 60 * 60);
+                    }
                 } else {
-                    channel.sendMessage("Spam started").queue();
-                    // schedule the task to run starting now and then every hour...
-                    timer.schedule (spamTimer, 0, 1000*60*60);
+                    channel.sendMessage("There is already a spam set. Use the !stopSpam command to stop it.").queue();
                 }
             }
 
             if (msg.equals("!stopSpam")) {
-                timer.cancel();
-                channel.sendMessage("Spam stopped").queue();
+                if (spamming) {
+                    spamming = false;
+                    spamTimer.cancel();
+                    channel.sendMessage("Spam stopped").queue();
+                } else {
+                    channel.sendMessage("No spam currently set").queue();
+                }
             }
 
             if (msg.startsWith("!setTopic ")) {
@@ -110,11 +165,11 @@ public class ReadyListener extends ListenerAdapter {
             }
 
             if (msg.equals("!help")) {
-                channel.sendMessage("ADMIN ONLY" +
-                        "\n!setTopic <link> - set a topic for the !topic command" +
-                        "\n!startSpam - starts spam (posts the current topic once every hour)" +
-                        "\n!stopSpam - stops spam (stops posting the current topic once every hour)" +
-                        "\n!spreadsheet - display link to memberlist / averages spreadsheet").queue();
+                channel.sendMessage("\n\nADMIN ONLY" +
+                                "\n!setTopic <link> - set a topic for the !topic command" +
+                                "\n!startSpam - starts spam (posts the current topic once every hour)" +
+                                "\n!stopSpam - stops spam (stops posting the current topic once every hour)" +
+                                "\n!spreadsheet - display link to memberlist / averages spreadsheet").queue();
             }
         }
     }
