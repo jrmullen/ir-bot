@@ -8,18 +8,30 @@ import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 
 import javax.security.auth.login.LoginException;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * Created by Jeremy on 4/17/2017.
  */
 public class Main {
-    private static final String BOT_TOKEN = "MzAzNjcyNzUyMTkwMjU5MjAy.C9bjFA.bCB4rk1m6p5pfwSpE8lOdl6PUto";
 
-    public static void main(String[] args) throws LoginException, RateLimitedException {
+    public static void main(String[] args) throws LoginException, RateLimitedException, InterruptedException {
         MessageService messageService = new MessageService();
+        Properties properties = new Properties();
+        try {
+            InputStream input = new FileInputStream("config.properties");
+            properties.load(input);
+            String token = properties.getProperty("token");
 
-        JDA jda = new JDABuilder(AccountType.BOT).setToken(BOT_TOKEN)
-                .addEventListener(new MessageListener(messageService)).buildAsync();
+            JDA jda = new JDABuilder(AccountType.BOT).setToken(token)
+                    .addEventListener(new MessageListener(messageService)).buildAsync();
+
+        } catch (IOException e) {
+            System.out.println("Error reading properties");
+        }
     }
 }
 

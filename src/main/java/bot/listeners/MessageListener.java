@@ -11,6 +11,7 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
  */
 public class MessageListener extends ListenerAdapter {
     private final MessageService messageService;
+    private final String LOBBY_ID = "282386308465164289";
 
     public MessageListener(MessageService messageService) {
         this.messageService = messageService;
@@ -24,7 +25,7 @@ public class MessageListener extends ListenerAdapter {
         MessageChannel channel = event.getChannel();
         String msg = message.getContent();
 
-        TextChannel lobby = jda.getTextChannelById("282386308465164289");
+        TextChannel lobby = jda.getTextChannelById(LOBBY_ID);
 
         if (event.isFromType(ChannelType.TEXT) && !author.isBot()) {
             if (!msg.startsWith("!")) {
