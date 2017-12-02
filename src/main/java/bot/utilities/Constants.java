@@ -16,7 +16,7 @@ public class Constants {
 
     public static final String APPLICATION_LINK = "https://www.ir-rs.com/index.php?/forum/19-applications/";
 
-    public static final String SPREADSHEET_LINK = "https://docs.google.com/spreadsheets/d/1jujHXpdEWATecnv3-yW1VVMkvK43rt7CVUyygKWm1Ko/edit?usp=sharing";
+    public static final String SPREADSHEET_LINK = "redacted";
 
     public static final String TRIP_SPAM_HELP_TEXT = "\n\n!tripSpam        - Starts / stops the trip spam";
 
