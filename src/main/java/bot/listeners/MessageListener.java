@@ -23,7 +23,7 @@ public class MessageListener extends ListenerAdapter {
         User author = event.getAuthor();
         Message message = event.getMessage();
         MessageChannel channel = event.getChannel();
-        String msg = message.getContent();
+        String msg = message.getContentRaw();
 
         TextChannel lobby = jda.getTextChannelById(LOBBY_ID);
 
