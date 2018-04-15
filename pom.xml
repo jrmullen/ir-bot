@@ -29,7 +29,7 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>3.0.0_176</version>
+            <version>3.6.0_356</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
